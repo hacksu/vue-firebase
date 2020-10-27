@@ -27,41 +27,31 @@ var todoList = new Vue({ //Establishing new Vue app
   created() { //Data function to create fetchTodos() function we are going to create to get the todo 
     this.fetchTodos();
   },
-  methods: { //Next after data is the methods/functions we are going to use 
+   methods: { //Next after data is the methods/functions we are going to use 
     
-    addTodo() { //Add ToDos from db collection  .add adds an instance of the new todo value   This – refers to the current Vue instance
-        
-      return db.collection('todos')
-      .add({
+    async addTodo() { //Add ToDos from db collection  .add adds an instance of the new todo value   This – refers to the current Vue instance
+      let docRef = await db.collection('todos').add({
         text: this.newTodoText
       })
-      .then((docRef)=>{ //Document reference in Firebase 
-        this.newTodoText= ''; //New is blank
-        this.fetchTodos(); //Fetch the current todos
-      })
+      this.newTodoText = '';
+      await this.fetchTodos()
     },
       
-    fetchTodos() { //Fetch the todos from database with .get()
-      return db.collection('todos').get()
-      .then(querySnapshot => //Query the database from the document in the map to display the id and text of each
-        querySnapshot.docs.map(doc=>{ 
+    async fetchTodos() { //Fetch the todos from database with .get()
+      let querySnapshot = await db.collection('todos').get()
+      this.todos = querySnapshot.docs.map(doc=>{ //Extract the id and text of each document
         let data = doc.data()
         return {
           id: doc.id,
-          text: data.text,
-      }
-      }))
-      .then(todos => this.todos = todos)
-      
+          text: data.text
+        }
+      })
     },
     
-    removeTodo(id) { //Remove the value based on the id looking in the collection based on id then delete function  return empty todo
-        return db.collection('todos').doc(id)
-        .delete()
-        .then(()=> {
-          return this.fetchTodos();
-        })
-       },
+    async removeTodo(id) { //Remove the value based on the id looking in the collection based on id then delete function  return empty todo
+      await db.collection('todos').doc(id).delete()
+      await this.fetchTodos()
+    },
   }
 })
   
